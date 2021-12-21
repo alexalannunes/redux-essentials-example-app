@@ -1,16 +1,13 @@
-import React, { useEffect } from 'react'
-import { useSelector, useDispatch } from 'react-redux'
-import { Link } from 'react-router-dom'
+import React, { useMemo } from "react";
+import { Link } from "react-router-dom";
+import { Spinner } from "../../components/Spinner";
+import { useGetPostsQuery } from "../api/apiSlice";
+import { PostAuthor } from "./PostAuthor";
+import { ReactionButtons } from "./ReactionButtons";
+import { TimeAgo } from "./TimeAgo";
+import classnames from "classnames";
 
-import { Spinner } from '../../components/Spinner'
-import { PostAuthor } from './PostAuthor'
-import { TimeAgo } from './TimeAgo'
-import { ReactionButtons } from './ReactionButtons'
-import { fetchPosts, selectPostIds, selectPostById } from './postsSlice'
-
-let PostExcerpt = ({ postId }) => {
-  const post = useSelector((state) => selectPostById(state, postId))
-
+let PostExcerpt = ({ post }) => {
   return (
     <article className="post-excerpt" key={post.id}>
       <h3>{post.title}</h3>
@@ -25,38 +22,51 @@ let PostExcerpt = ({ postId }) => {
         View Post
       </Link>
     </article>
-  )
-}
+  );
+};
 
 export const PostsList = () => {
-  const dispatch = useDispatch()
-  const orderedPostIds = useSelector(selectPostIds)
+  const {
+    data: posts = [],
+    isLoading,
+    isSuccess,
+    isError,
+    isFetching,
+    error,
+    refetch,
+  } = useGetPostsQuery();
 
-  const postStatus = useSelector((state) => state.posts.status)
-  const error = useSelector((state) => state.posts.error)
+  let content;
 
-  useEffect(() => {
-    if (postStatus === 'idle') {
-      dispatch(fetchPosts())
-    }
-  }, [postStatus, dispatch])
+  const sortedPosts = useMemo(() => {
+    const sortedPosts = posts.slice();
+    sortedPosts.sort((a, b) => b.date.localeCompare(a.date));
+    return sortedPosts;
+  }, [posts]);
 
-  let content
+  console.log(sortedPosts);
 
-  if (postStatus === 'loading') {
-    content = <Spinner text="Loading..." />
-  } else if (postStatus === 'succeeded') {
-    content = orderedPostIds.map((postId) => (
-      <PostExcerpt key={postId} postId={postId} />
-    ))
-  } else if (postStatus === 'failed') {
-    content = <div>{error}</div>
+  if (isLoading) {
+    content = <Spinner text="Loading..." />;
+  } else if (isSuccess) {
+    const renderedPosts = sortedPosts.map((post) => (
+      <PostExcerpt key={post.id} post={post} />
+    ));
+
+    const containerClassname = classnames("posts-container", {
+      disabled: isFetching,
+    });
+
+    content = <div className={containerClassname}>{renderedPosts}</div>;
+  } else if (isError) {
+    content = <div>{error}</div>;
   }
 
   return (
     <section className="posts-list">
       <h2>Posts</h2>
+      <button onClick={refetch}>Refetch Posts</button>
       {content}
     </section>
-  )
-}
+  );
+};
