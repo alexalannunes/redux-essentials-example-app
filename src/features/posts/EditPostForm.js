@@ -1,21 +1,19 @@
 import React, { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { useHistory } from "react-router-dom";
 import { Spinner } from "../../components/Spinner";
 import { useEditPostMutation, useGetPostQuery } from "../api/apiSlice";
 
-import { postUpdated, selectPostById } from "./postsSlice";
-
 export const EditPostForm = ({ match }) => {
   const { postId } = match.params;
 
-  const { data: post, isFetching, isSuccess } = useGetPostQuery(postId);
+  const { data: post, isFetching } = useGetPostQuery(postId);
 
-  const [editPost] = useEditPostMutation();
+  const [updatePost, { isLoading }] = useEditPostMutation();
+
   const [title, setTitle] = useState(post.title);
   const [content, setContent] = useState(post.content);
 
-  const dispatch = useDispatch();
   const history = useHistory();
 
   const onTitleChanged = (e) => setTitle(e.target.value);
@@ -23,7 +21,7 @@ export const EditPostForm = ({ match }) => {
 
   const onSavePostClicked = async () => {
     if (title && content) {
-      await editPost({ id: postId, title, content });
+      await updatePost({ id: postId, title, content });
       history.push(`/posts/${postId}`);
     }
   };
