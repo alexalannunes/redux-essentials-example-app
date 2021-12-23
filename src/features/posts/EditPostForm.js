@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { useDispatch } from "react-redux";
 import { useHistory } from "react-router-dom";
 import { Spinner } from "../../components/Spinner";
 import { useEditPostMutation, useGetPostQuery } from "../api/apiSlice";
@@ -9,7 +8,7 @@ export const EditPostForm = ({ match }) => {
 
   const { data: post, isFetching } = useGetPostQuery(postId);
 
-  const [updatePost, { isLoading }] = useEditPostMutation();
+  const [updatePost] = useEditPostMutation();
 
   const [title, setTitle] = useState(post.title);
   const [content, setContent] = useState(post.content);

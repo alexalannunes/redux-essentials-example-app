@@ -1,18 +1,16 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import "./index.css";
+import { Provider } from "react-redux";
+import { worker } from "./api/server";
 import App from "./App";
 import store from "./app/store";
-import { Provider } from "react-redux";
-
-import { worker } from "./api/server";
-
-import { fetchUsers } from "./features/users/usersSlice";
+import { extendedApiSlice } from "./features/users/usersSlice";
+import "./index.css";
 
 // Start our mock API server
 worker.start({ onUnhandledRequest: "bypass" });
 
-store.dispatch(fetchUsers());
+store.dispatch(extendedApiSlice.endpoints.getUsers.initiate());
 
 console.log(store.getState());
 
